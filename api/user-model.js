@@ -1,4 +1,4 @@
-const userID  = require('shortid') 
+const userID  = require('shortid');  
 
 let users = [
     {
@@ -18,10 +18,27 @@ module.exports = {
     },
 
 
-    create({ name,bio }){
+    create( name,bio ){
         const newUser = {id:userID.generate(),name:name,bio:bio,
             created_at:Date(),updated_at:null};
 
         return Promise.resolve(newUser);
+    },
+    
+    delete(id){
+        // DELETE FROM users WHERE id = 1
+        const user = Users.find(user => user.id === id);
+        if (!user)
+            return Promise.resolve(null)
+        users = users.filter(u => u.id !== id);
+        return Promise.resolve(user)
+    },
+    update(id, changes){
+        const user = users.find(user => user.id === id)
+        if(!user) return Promise.resolve(null);
+
+        const updatedUser = {...changes,id}
+        users = users.map( u =>(u.id===id ? updatedUser : d))
+        return Promise.resolve(updatedUser)
     }
 }

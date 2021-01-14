@@ -7,18 +7,6 @@ const server = express();
 // Start the app and configure it with the express json to read body req 1 day
 server.use(express.json());
 
-/*
-Method	URL	Description
-POST	/api/users	Creates a user using the information 
-sent inside the request body.
-GET	/api/users	Returns an array users.
-GET	/api/users/:id	Returns the user object with the
-specified id.
-DELETE	/api/users/:id	Removes the user with the specified 
-id and returns the deleted user.
-PUT	/api/users/:id	Updates the user with the specified id 
-using data from the request body. Returns the modified user
-*/
 
 /*
 Endpoint Specifications
@@ -85,6 +73,11 @@ return the newly updated user document.
 // Endpoints
 // [GET] /
 
+/*
+Method	URL	Description
+POST	/api/users	Creates a user using the information 
+sent inside the request body.
+*/
 server.post('/api/users', async(req,res) =>{
     const user = req.body;
     if(!user.name){
@@ -93,7 +86,7 @@ server.post('/api/users', async(req,res) =>{
             // Database Reactions
         try{
             res.json({message:'name is'})
-            const theUser = await User.create(user.name,user.bio);
+            const theUser = await User.create(user);
             res.status(201).json(theUser);
         } catch (error){
             // Error control
@@ -103,13 +96,89 @@ server.post('/api/users', async(req,res) =>{
 
 });
 
+/*
+GET	/api/users	Returns an array users.
+*/
+server.get('/api/users', (req,res) =>{
+    User.findAll()
+    .then(users =>{
+        res.status(200).json(users)
+    })
+    .catch(error =>{
+        res.status(500).json({message:error.message})
+    })
+})
+
+
+/*
+GET	/api/users/:id	Returns the user object with the
+specified id.
+*/
+server.get('/api/users/:id', (req,res)=>{
+    const {id} = req.params;
+    User.findById(id)
+        .then(user =>{
+            if(!user){
+                res.status(404).json({message: `user with id ${id} not found`})
+            }else {
+                res.status(200).json(user)
+            }
+        })
+        .catch(error =>{
+            res.status(500).json({message: error.message})
+        })
+})
+// DELETE	/api/users/:id	Removes the user with the specified 
+    // id and returns the deleted user.
+server.delete('/api/users/:id', (req,res) =>{
+    const { id} = req.params;
+    User.delete(id)
+        .then(deleted => {
+            if (!deleted){
+                res.status(404).json({message: `user with id ${id} not found`})
+            }else {
+                res.status(200).json(deleted)
+            }
+        })
+        .catch( error =>{
+            res.status(500).json({ message: error.message})
+        }) 
+})
 
 
 
+/* 
+PUT	/api/users/:id	Updates the user with the specified id 
+using data from the request body. Returns the modified user
+*/
+server.put('/api/users/:id', async (req,res) =>{
+    const id = req.params.id;
+    const changes = req.body;
+    if (!changes.name || !changes.bio || changes.id === undefined)
+    {
+        res.status(400).json({ message: 'all fields are requred'})
+    } else {
+        try{
+            const updated = await User.update(id, changes)
+            if(!updated) {
+                res.status(404).json({message: `User with id ${id} not ever found in the records`})
+            } else {
+                res.status(200).json(updated)
+            }
+        } catch (error) {
+            res.status(500).json( {message: error.message})
+        }
+    }
+})
 
+
+/* Get home*/
 server.get('/', (req,res) => {
     res.json({message:'hello this is said to work'})
 })
+
+
+
 
 
 module.exports = server
