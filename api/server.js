@@ -25,24 +25,18 @@ sent inside the request body.
 When the client makes a POST request to /api/users:
 
 If the request body is missing the name or bio property:
-
 respond with HTTP status code 400 (Bad Request).
 return the following JSON response: { errorMessage: "Please provide name and bio for the user." }.
 
 If the information about the user is valid:
-
 save the new user the the database.
 respond with HTTP status code 201 (Created).
 return the newly created user document.
-If there's an error while saving the user:
 
+If there's an error while saving the user:
 respond with HTTP status code 500 (Server Error).
 return the following JSON object: { errorMessage: "There was an error while saving the user to the database" }.
 
-When the client makes a GET request to /api/users:
-If there's an error in retrieving the users from the database:
-respond with HTTP status code 500.
-return the following JSON object: { errorMessage: "The users information could not be retrieved." }.
 
 */
 server.post('/api/users', async(req,res) =>{
@@ -55,11 +49,12 @@ server.post('/api/users', async(req,res) =>{
             // Database Reactions
         try{
             res.json({message:'name is'})
-            const theUser = await User.create(user);
+            const theUser = await User.create(User.name,User.bio);
             res.status(201).json(theUser);
+            return theUser;
         } catch (error){
             // Error control
-            res.status(500).json({ errorMessage: "The users information could not be retrieved." })
+            res.status(500).json({ errorMessage: "There was an error while saving the user to the database" })
         } 
     } 
 
@@ -73,6 +68,11 @@ server.post('/api/users', async(req,res) =>{
 
 /*
 GET	/api/users	Returns an array users.
+When the client makes a GET request to /api/users:
+If there's an error in retrieving the users from the database:
+respond with HTTP status code 500.
+return the following JSON object: { errorMessage: "The users information could not be retrieved." }.
+
 */
 server.get('/api/users', (req,res) =>{
     User.findAll()
@@ -80,7 +80,7 @@ server.get('/api/users', (req,res) =>{
         res.status(200).json(users)
     })
     .catch(error =>{
-        res.status(500).json({message:error.message})
+        res.status(500).json({ errorMessage: "The users information could not be retrieved." })
     })
 })
 
@@ -107,6 +107,7 @@ server.get('/api/users/:id', (req,res)=>{
                 res.status(404).json({message: "The user with the specified ID does not exist."})
             }else {
                 res.status(200).json(user)
+                return user;
             }
         })
         .catch(error =>{
@@ -134,6 +135,7 @@ server.delete('/api/users/:id', (req,res) =>{
                 res.status(404).json({message: "The user with the specified ID does not exist."})
             }else {
                 res.status(200).json(deleted)
+                return deleted;
             }
         })
         .catch( error =>{
@@ -170,17 +172,18 @@ server.put('/api/users/:id', async (req,res) =>{
     const changes = req.body;
     if (!changes.name || !changes.bio || changes.id === undefined)
     {
-        res.status(400).json({ message: 'all fields are requred'})
+        res.status(400).json({ errorMessage: "400 Please provide name and bio for the user."})
     } else {
         try{
             const updated = await User.update(id, changes)
             if(!updated) {
-                res.status(404).json({message: `User with id ${id} not ever found in the records`})
+                res.status(404).json({ message: "404 The user with the specified ID does not exist."})
             } else {
                 res.status(200).json(updated)
+                return updated;
             }
         } catch (error) {
-            res.status(500).json( {message: error.message})
+            res.status(500).json( { errorMessage: "The user information could not be modified."})
         }
     }
 })

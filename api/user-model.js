@@ -16,8 +16,12 @@ module.exports = {
         // SELECT * FROM users
         return Promise.resolve(users)
     },
-
-
+    findById(id) {
+        // SELECT * FROM dogs WHERE id = 1;
+        const user = users.find(u => u.id === id)
+        return Promise.resolve(user)
+      }
+,
     create( name,bio ){
         const newUser = {id:userID.generate(),name:name,bio:bio,
             created_at:Date(),updated_at:null};
@@ -38,7 +42,7 @@ module.exports = {
         if(!user) return Promise.resolve(null);
 
         const updatedUser = {...changes,id}
-        users = users.map( u =>(u.id===id ? updatedUser : d))
+        users = users.map( u =>(u.id === id ? updatedUser : u))
         return Promise.resolve(updatedUser)
     }
 }
